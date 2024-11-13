@@ -1,7 +1,5 @@
 import os
-
 from dotenv import load_dotenv
-
 import urllib.request
 import json
 
@@ -12,18 +10,13 @@ load_dotenv()
 MAPBOX_TOKEN = os.getenv("MAPBOX_TOKEN")
 MBTA_API_KEY = os.getenv("MBTA_API_KEY")
 
-
 # Useful base URLs (you need to add the appropriate parameters for each API request)
 MAPBOX_BASE_URL = "https://api.mapbox.com/geocoding/v5/mapbox.places"
 MBTA_BASE_URL = "https://api-v3.mbta.com/stops"
 
-
-# A little bit of scaffolding if you want to use it
 def get_json(url: str) -> dict:
     """
     Given a properly formatted URL for a JSON web API request, return a Python JSON object containing the response to that request.
-
-    Both get_lat_lng() and get_nearest_station() might need to use this function.
     """
     try:
         with urllib.request.urlopen(url) as response:
@@ -31,17 +24,14 @@ def get_json(url: str) -> dict:
             data = json.loads(response_text)
             return data
     except Exception as e:
-        print(f"Sorry, could not retrieve the json data. Please try a new location.\nError: {e}")
+        print(f"Could not retrieve the JSON data. Error: {e}")
     return {}
-
 
 def get_lat_lng(place_name: str) -> tuple[str, str]:
     """
     Given a place name or address, return a (latitude, longitude) tuple with the coordinates of the given place.
-
-    See https://docs.mapbox.com/api/search/geocoding/ for Mapbox Geocoding API URL formatting requirements.
     """
-    # Prepare url for the API request (replace space by %20 etc... that can be used in url links)
+    # Prepare the URL for the API request
     encoded_place_name = urllib.parse.quote(place_name)
     url = f"https://api.mapbox.com/search/geocode/v6/forward?q={encoded_place_name}&access_token={MAPBOX_TOKEN}"
 
@@ -58,12 +48,20 @@ def get_lat_lng(place_name: str) -> tuple[str, str]:
         print("Location not found.")
         return None, None
 
+def test_get_lat_lng():
+    """
+    Test the get_lat_lng function with the place name "Boston".
+    """
+    place_name = "Boston"
+    latitude, longitude = get_lat_lng(place_name)
+    if latitude and longitude:
+        print(f"Coordinates of {place_name}: Latitude: {latitude}, Longitude: {longitude}")
+    else:
+        print("Location not found or an error occurred.")
 
 def get_nearest_station(latitude: str, longitude: str) -> tuple[str, bool]:
     """
     Given latitude and longitude strings, return a (station_name, wheelchair_accessible) tuple for the nearest MBTA station to the given coordinates.
-
-    See https://api-v3.mbta.com/docs/swagger/index.html#/Stop/ApiWeb_StopController_index for URL formatting requirements for the 'GET /stops' API.
     """
     # Update MBTA URL with the retrieved coordinates
     MBTA_url = f"{MBTA_BASE_URL}?sort=distance&filter[latitude]={latitude}&filter[longitude]={longitude}"
@@ -84,39 +82,25 @@ def get_nearest_station(latitude: str, longitude: str) -> tuple[str, bool]:
         return None, None
 
 
-def find_stop_near(place_name: str) -> tuple[str, bool]:
+def test_get_nearest_station():
     """
-    Given a place name or address, return the nearest MBTA stop and whether it is wheelchair accessible.
-
-    This function might use all the functions above.
+    Test the get_nearest_station function using coordinates for Boston.
     """
-        # Step 1: Get latitude and longitude for the place name
-    latitude, longitude = get_lat_lng(place_name)
-    if latitude is None or longitude is None:
-        print("Could not determine location.")
-        return None, None
+    # Coordinates of Boston (from previous test)
+    latitude, longitude = get_lat_lng("Boston")
+    
+    if latitude and longitude:
+        station_name, wheelchair_accessible = get_nearest_station(latitude, longitude)
+        if station_name:
+            print(f"Nearest MBTA station to Boston: {station_name}")
+            print(f"Wheelchair Accessible: {'Yes' if wheelchair_accessible else 'No'}")
+        else:
+            print("No nearby MBTA station found.")
+    else:
+        print("Location not found or an error occurred.")
 
-    # Step 2: Find the nearest station using the coordinates
-    station_name, wheelchair_accessible = get_nearest_station(latitude, longitude)
-    if station_name is None:
-        print("No nearby MBTA station found.")
-        return None, None
-
-    # Step 3: Return the station name and accessibility status
-    return station_name, wheelchair_accessible
-
-
-def main():
-    """
-    You should test all the above functions here
-    """
-    place_name = "Prudential"
-    station_name, wheelchair_accessible = find_stop_near(place_name)
-    if station_name:
-        print(f'Your current location is {place_name}')
-        print(f"Nearest MBTA station to {place_name}: {station_name}")
-        print(f"Wheelchair Accessible: {'Yes' if wheelchair_accessible else 'No'}")
-
-
+# Run the tests
 if __name__ == "__main__":
-    main()
+    test_get_lat_lng()
+    test_get_nearest_station()
+

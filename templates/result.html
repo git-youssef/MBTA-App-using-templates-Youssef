@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearest MBTA Station</title>
+</head>
+<body>
+    <h1>Nearest MBTA Station</h1>
+    <p>For the location: {{ place_name }}</p>
+    <p>Nearest Station: {{ station_name }}</p>
+    <p>Wheelchair Accessible: {{ "Yes" if wheelchair_accessible else "No" }}</p>
+    <a href="/">Search again</a>
+</body>
+</html>
